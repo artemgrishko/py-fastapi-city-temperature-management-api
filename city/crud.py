@@ -23,5 +23,5 @@ def delete_city(db: Session, city_id: int):
     if db_city:
         db.delete(db_city)
         db.commit()
-    db.refresh(db_city)
+
     return db_city

@@ -33,6 +33,6 @@ def delete_city(
     del_city = crud.delete_city(db=db, city_id=city_id)
 
     if del_city is None:
-        raise HTTPException(status_code=404, detail="City does not exist")
+        raise HTTPException(status_code=204, detail="City does not exist")
 
     return del_city

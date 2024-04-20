@@ -1,12 +1,14 @@
-from django.test import AsyncClient
+import os
+
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from dependencies import get_db
-from settings import settings
 from temperature import schemas, crud
-from city.crud import get_cities
+from temperature.temperature_update import fetch_temperatures
+
+WEATHER_API = os.environ["WEATHER_API"]
 
 router = APIRouter()
 
@@ -28,35 +30,7 @@ def read_temperatures(
 
 load_dotenv()
 
-WEATHER_API = "https://api.weatherapi.com/v1/current.json"
-
 
 @router.post("/temperatures/update/", response_model=dict)
 async def update_temperatures(db: Session = Depends(get_db)):
-    async with AsyncClient() as client:
-        cities = get_cities(db)
-
-        for city in cities:
-            response = await client.get(
-                settings.WEATHER_API_URL,
-                params={"key": settings.WEATHER_API_KEY, "q": city.name}
-            )
-            if response.status_code == 200:
-                temperature_data = response.json()
-                if "temperature" in temperature_data:
-                    crud.update_temperature(
-                        db, city.id,
-                        temperature_data["temperature"]
-                    )
-                else:
-                    raise HTTPException(
-                        status_code=404,
-                        detail="Temperature data not found"
-                    )
-            else:
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail="Failed to fetch temperature data"
-                )
-
-    return {"message": "Temperatures updated successfully"}
+    await fetch_temperatures(db)
