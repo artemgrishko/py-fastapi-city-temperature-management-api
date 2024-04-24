@@ -29,10 +29,10 @@ def create_city(
 def delete_city(
         city_id: int,
         db: Session = Depends(get_db)
-) -> list[schemas.CityList]:
+) -> HTTPException:
     del_city = crud.delete_city(db=db, city_id=city_id)
 
     if del_city is None:
-        raise HTTPException(status_code=204, detail="City does not exist")
+        raise HTTPException(status_code=404, detail="City does not exist")
 
-    return del_city
+    return HTTPException(status_code=204, detail="City deleted")

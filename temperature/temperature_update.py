@@ -1,3 +1,6 @@
+import asyncio
+import os
+
 from httpx import AsyncClient
 from fastapi import HTTPException
 
@@ -6,14 +9,21 @@ from temperature import crud
 from city.crud import get_cities
 
 
+async def get_weather_api(city, client):
+    result = await client.get(
+        os.environ["WEATHER_API"],
+        params={"key": settings.WEATHER_API_KEY, "q": city.name}
+    )
+
+    return result, city
+
+
 async def fetch_temperatures(db):
     async with AsyncClient() as client:
         cities = get_cities(db)
-        for city in cities:
-            response = await client.get(
-                settings.WEATHER_API_URL,
-                params={"key": settings.WEATHER_API_KEY, "q": city.name}
-            )
+        tasks = [get_weather_api(city, client) for city in cities]
+        results = await asyncio.gather(*tasks)
+        for response, city in results:
             if response.status_code == 200:
                 temperature_data = response.json()
                 if "temperature" in temperature_data:
