@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from dependencies import get_db
 from city import schemas, crud
-
 
 router = APIRouter()
 
@@ -33,6 +32,6 @@ def delete_city(
     del_city = crud.delete_city(db=db, city_id=city_id)
 
     if del_city is None:
-        raise HTTPException(status_code=404, detail="City does not exist")
+        raise Response(status_code=status.HTTP_204_NO_CONTENT)
 
     return HTTPException(status_code=204, detail="City deleted")
