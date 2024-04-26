@@ -25,6 +25,7 @@ async def fetch_temperatures(db: Session) -> dict | HTTPException:
     async with AsyncClient() as client:
         tasks = [get_weather_api(city, client) for city in cities]
         results = await asyncio.gather(*tasks)
+
     for response, city in results:
         if response.status_code == 200:
             temperature_data = response.json()

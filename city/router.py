@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
+from starlette.responses import Response
 
 from dependencies import get_db
 from city import schemas, crud
@@ -28,10 +29,10 @@ def create_city(
 def delete_city(
         city_id: int,
         db: Session = Depends(get_db)
-) -> HTTPException:
+) -> Response | HTTPException:
     del_city = crud.delete_city(db=db, city_id=city_id)
 
     if del_city is None:
-        raise Response(status_code=status.HTTP_204_NO_CONTENT)
+        raise HTTPException(status_code=404, detail="City does not exist")
 
-    return HTTPException(status_code=204, detail="City deleted")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
